@@ -49,7 +49,7 @@ $applications = $stmt->fetchAll();
         }
         
         .applications-table th {
-            background: linear-gradient(135deg, #f8b0c0, #f48fb1);
+            background: linear-gradient(135deg, #f8b0b0, #be8ff4);
             color: white;
             font-weight: 600;
             position: sticky;
@@ -67,7 +67,7 @@ $applications = $stmt->fetchAll();
         
         .badge {
             display: inline-block;
-            background-color: #f06292;
+            background-color: #6270f0;
             color: white;
             padding: 0.2rem 0.6rem;
             border-radius: 20px;
@@ -90,7 +90,7 @@ $applications = $stmt->fetchAll();
         .empty-state {
             text-align: center;
             padding: 3rem;
-            color: #9b4b6e;
+            color: #5c4b9b;
             background-color: #fff0f3;
             border-radius: 20px;
         }
@@ -111,7 +111,7 @@ $applications = $stmt->fetchAll();
         }
         
         .btn-view {
-            background-color: #f06292;
+            background-color: #b062f0;
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -122,7 +122,7 @@ $applications = $stmt->fetchAll();
         }
         
         .btn-view:hover {
-            background-color: #d81b60;
+            background-color: #1b37d8;
         }
         
         .btn-delete {
@@ -158,7 +158,7 @@ $applications = $stmt->fetchAll();
         }
         
         .action-btn {
-            background: linear-gradient(135deg, #f06292, #d81b60);
+            background: linear-gradient(135deg, #6294f0, #1b5dd8);
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 40px;
@@ -207,15 +207,15 @@ $applications = $stmt->fetchAll();
             top: 1rem;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #9b4b6e;
+            color: #6a4b9b;
         }
         
         .modal-close:hover {
-            color: #d81b60;
+            color: #6d1bd8;
         }
         
         .modal h3 {
-            color: #d81b60;
+            color: #931bd8;
             margin-bottom: 1rem;
         }
         
@@ -224,7 +224,7 @@ $applications = $stmt->fetchAll();
         }
         
         .modal-field strong {
-            color: #d81b60;
+            color: #6d1bd8;
             display: inline-block;
             width: 120px;
         }
@@ -251,7 +251,7 @@ $applications = $stmt->fetchAll();
             font-weight: bold;
         }
         .gender-female {
-            color: #e91e63;
+            color: #5b1ee9;
             font-weight: bold;
         }
         
@@ -328,7 +328,7 @@ $applications = $stmt->fetchAll();
                                         endif;
                                     endforeach; 
                                     if (empty($app['languages'])):
-                                        echo '<em style="color: #9b4b6e;">— не выбрано —</em>';
+                                        echo '<em style="color: #504b9b;">— не выбрано —</em>';
                                     endif;
                                     ?>
                                 </td>
@@ -336,7 +336,7 @@ $applications = $stmt->fetchAll();
                                     <?php 
                                     $bio = htmlspecialchars($app['biography'] ?? '');
                                     if (empty($bio)):
-                                        echo '<em style="color: #9b4b6e;">— не указано —</em>';
+                                        echo '<em style="color: #9b4b4b;">— не указано —</em>';
                                     else:
                                         echo strlen($bio) > 100 ? substr($bio, 0, 100) . '…' : $bio;
                                     endif;
