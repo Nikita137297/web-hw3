@@ -1,185 +1,115 @@
-<?php
-//ФУНКЦИЯ ПОДКЛЮЧЕНИЯ К БД 
-function getDB() {
-    static $pdo = null;
-    if ($pdo === null) {
-        $db_host = 'localhost';
-        $db_user = 'u82457';
-        $db_pass = '7777166';
-        $db_name = 'u82457';
-        try {
-            $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("Ошибка подключения к БД: " . $e->getMessage());
-        }
-    }
-    return $pdo;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа №3 — Форма с сохранением в БД</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h2>Задание 3. Форма с валидацией и сохранением в базу данных</h2>
+        </div>
+    </header>
 
-// ФУНКЦИЯ ПОЛУЧЕНИЯ СПИСКА ЯЗЫКОВ ИЗ БД 
-function getLanguages() {
-    $pdo = getDB();
-    $stmt = $pdo->query("SELECT name FROM language ORDER BY name");
-    $languages = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $languages[] = $row['name'];
-    }
-    return $languages;
-}
+    <main class="container">
+        <section class="intro">
+            <p>Заполните форму ниже. Все поля обязательны для заполнения, кроме биографии. После отправки данные будут проверены на сервере и сохранены в базу данных MySQL.</p>
+        </section>
 
-// ДОПУСТИМЫЕ ЗНАЧЕНИЯ (белые списки) 
-$allowed_languages = [
-    'Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python',
-    'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala', 'Go'
-];
-$allowed_genders = ['male', 'female'];
+        <!-- Форма отправляется на process.php методом POST -->
+        <form action="process.php" method="POST" class="application-form">
+            <!-- 1. ФИО -->
+            <div class="form-group">
+                <label for="full_name">ФИО <span class="required">*</span></label>
+                <input type="text" id="full_name" name="full_name" required 
+                       placeholder="Иванов Иван Иванович" 
+                       value="<?php echo htmlspecialchars($_POST['full_name'] ?? ''); ?>">
+                <small>Только буквы, пробелы и дефис, не более 150 символов</small>
+            </div>
 
-//  ИНИЦИАЛИЗАЦИЯ ПЕРЕМЕННЫХ 
-$form_data = [
-    'full_name' => '', 'phone' => '', 'email' => '', 'birth_date' => '',
-    'gender' => '', 'biography' => '', 'contract_accepted' => false, 'languages' => []
-];
-$errors = [];
-$success_message = '';
+            <!-- 2. Телефон -->
+            <div class="form-group">
+                <label for="phone">Телефон <span class="required">*</span></label>
+                <input type="tel" id="phone" name="phone" required 
+                       placeholder="+7 (123) 456-78-90" 
+                       value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
+                <small>Формат: +7XXXXXXXXXX или 8XXXXXXXXXX</small>
+            </div>
 
-// ОБРАБОТКА POST-ЗАПРОСА (ОТПРАВКА ФОРМЫ)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Заполняем $form_data из $_POST
-    $form_data['full_name'] = trim($_POST['full_name'] ?? '');
-    $form_data['phone'] = trim($_POST['phone'] ?? '');
-    $form_data['email'] = trim($_POST['email'] ?? '');
-    $form_data['birth_date'] = trim($_POST['birth_date'] ?? '');
-    $form_data['gender'] = $_POST['gender'] ?? '';
-    $form_data['biography'] = trim($_POST['biography'] ?? '');
-    $form_data['contract_accepted'] = isset($_POST['contract_accepted']);
-    $form_data['languages'] = $_POST['languages'] ?? [];
+            <!-- 3. Email -->
+            <div class="form-group">
+                <label for="email">E-mail <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="example@domain.ru" 
+                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+            </div>
 
-    // ---- ВАЛИДАЦИЯ ----
-    // ФИО
-    if (empty($form_data['full_name'])) {
-        $errors['full_name'] = 'ФИО обязательно для заполнения.';
-    } elseif (!preg_match('/^[а-яА-Яa-zA-Z\s]+$/u', $form_data['full_name'])) {
-        $errors['full_name'] = 'ФИО должно содержать только буквы и пробелы.';
-    } elseif (strlen($form_data['full_name']) > 150) {
-        $errors['full_name'] = 'ФИО не должно превышать 150 символов.';
-    }
+            <!-- 4. Дата рождения -->
+            <div class="form-group">
+                <label for="birth_date">Дата рождения <span class="required">*</span></label>
+                <input type="date" id="birth_date" name="birth_date" required 
+                       value="<?php echo htmlspecialchars($_POST['birth_date'] ?? ''); ?>">
+            </div>
 
-    // Телефон
-    if (empty($form_data['phone'])) {
-        $errors['phone'] = 'Телефон обязателен.';
-    } elseif (!preg_match('/^[\d\s\-\+\(\)]+$/', $form_data['phone'])) {
-        $errors['phone'] = 'Телефон содержит недопустимые символы.';
-    } elseif (strlen($form_data['phone']) < 6 || strlen($form_data['phone']) > 12) {
-        $errors['phone'] = 'Телефон должен содержать от 6 до 12 символов.';
-    }
+            <!-- 5. Пол  -->
+<div class="form-group">
+    <label>Пол <span class="required">*</span></label>
+    <div class="radio-group">
+        <label><input type="radio" name="gender" value="male" 
+            <?php echo (($_POST['gender'] ?? '') == 'male') ? 'checked' : ''; ?>> Мужской</label>
+        <label><input type="radio" name="gender" value="female" 
+            <?php echo (($_POST['gender'] ?? '') == 'female') ? 'checked' : ''; ?>> Женский</label>
+    </div>
+</div>
 
-    // Email
-    if (empty($form_data['email'])) {
-        $errors['email'] = 'Email обязателен.';
-    } elseif (!filter_var($form_data['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'Некорректный формат email.';
-    }
+            <!-- 6. Любимый язык программирования-->
+            <div class="form-group">
+                <label for="languages">Любимый язык программирования <span class="required">*</span></label>
+                <select name="languages[]" id="languages" multiple size="6" required>
+                    <option value="Pascal" <?php echo (in_array('Pascal', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Pascal</option>
+                    <option value="C" <?php echo (in_array('C', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>C</option>
+                    <option value="C++" <?php echo (in_array('C++', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>C++</option>
+                    <option value="JavaScript" <?php echo (in_array('JavaScript', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>JavaScript</option>
+                    <option value="PHP" <?php echo (in_array('PHP', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>PHP</option>
+                    <option value="Python" <?php echo (in_array('Python', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Python</option>
+                    <option value="Java" <?php echo (in_array('Java', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Java</option>
+                    <option value="Haskell" <?php echo (in_array('Haskell', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Haskell</option>
+                    <option value="Clojure" <?php echo (in_array('Clojure', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Clojure</option>
+                    <option value="Prolog" <?php echo (in_array('Prolog', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Prolog</option>
+                    <option value="Scala" <?php echo (in_array('Scala', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Scala</option>
+                    <option value="Go" <?php echo (in_array('Go', $_POST['languages'] ?? [])) ? 'selected' : ''; ?>>Go</option>
+                </select>
+                <small>Зажмите Ctrl  для выбора нескольких языков</small>
+            </div>
 
-    // Дата рождения
-    if (empty($form_data['birth_date'])) {
-        $errors['birth_date'] = 'Дата рождения обязательна.';
-    } else {
-        $date = DateTime::createFromFormat('Y-m-d', $form_data['birth_date']);
-        if (!$date || $date->format('Y-m-d') !== $form_data['birth_date']) {
-            $errors['birth_date'] = 'Некорректная дата. Используйте формат ГГГГ-ММ-ДД.';
-        } elseif ($date > new DateTime('today')) {
-            $errors['birth_date'] = 'Дата рождения не может быть позже сегодняшнего дня.';
-        }
-    }
+            <!-- 7. Биография  -->
+            <div class="form-group">
+                <label for="biography">Биография</label>
+                <textarea id="biography" name="biography" rows="5" 
+                          placeholder="Расскажите немного о себе..."><?php echo htmlspecialchars($_POST['biography'] ?? ''); ?></textarea>
+            </div>
 
-    // Пол
-    if (empty($form_data['gender'])) {
-        $errors['gender'] = 'Выберите пол.';
-    } elseif (!in_array($form_data['gender'], $allowed_genders)) {
-        $errors['gender'] = 'Недопустимое значение пола.';
-    }
+            <!-- 8. Чекбокс с контрактом -->
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="contract_accepted" value="1" 
+                        <?php echo (isset($_POST['contract_accepted']) && $_POST['contract_accepted'] == 1) ? 'checked' : ''; ?>>
+                    С контрактом ознакомлен(а) <span class="required">*</span>
+                </label>
+            </div>
 
-    // Языки
-    if (empty($form_data['languages'])) {
-        $errors['languages'] = 'Выберите хотя бы один язык.';
-    } else {
-        foreach ($form_data['languages'] as $lang) {
-            if (!in_array($lang, $allowed_languages)) {
-                $errors['languages'] = 'Выбран недопустимый язык.';
-                break;
-            }
-        }
-    }
-
-    // Биография
-    if (strlen($form_data['biography']) > 10000) {
-        $errors['biography'] = 'Биография слишком длинная (макс. 10000 символов).';
-    }
-
-    // Чекбокс
-    if (!$form_data['contract_accepted']) {
-        $errors['contract_accepted'] = 'Необходимо подтвердить согласие.';
-    }
-
-    // СОХРАНЕНИЕ В БД (только если ошибок нет)
-    if (empty($errors)) {
-        try {
-            $pdo = getDB();
-            $pdo->beginTransaction();
-
-            // Вставка в application
-            $stmt = $pdo->prepare("
-                INSERT INTO application 
-                (full_name, phone, email, birth_date, gender, biography, contract_accepted)
-                VALUES (:full_name, :phone, :email, :birth_date, :gender, :biography, :contract_accepted)
-            ");
-            $stmt->execute([
-                ':full_name' => $form_data['full_name'],
-                ':phone' => $form_data['phone'],
-                ':email' => $form_data['email'],
-                ':birth_date' => $form_data['birth_date'],
-                ':gender' => $form_data['gender'],
-                ':biography' => $form_data['biography'],
-                ':contract_accepted' => $form_data['contract_accepted'] ? 1 : 0
-            ]);
-            $application_id = $pdo->lastInsertId();
-
-            // Получаем map язык → id
-            $lang_map = [];
-            $stmt = $pdo->query("SELECT id, name FROM language");
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $lang_map[$row['name']] = $row['id'];
-            }
-
-            // Вставка связей
-            $stmt = $pdo->prepare("INSERT INTO application_language (application_id, language_id) VALUES (?, ?)");
-            foreach ($form_data['languages'] as $lang_name) {
-                if (isset($lang_map[$lang_name])) {
-                    $stmt->execute([$application_id, $lang_map[$lang_name]]);
-                }
-            }
-
-            $pdo->commit();
-            $success_message = 'Данные успешно сохранены!';
-            // Очищаем форму
-            $form_data = array_map(function() { return ''; }, $form_data);
-            $form_data['languages'] = [];
-            $form_data['contract_accepted'] = false;
-
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            $errors['db'] = 'Ошибка при сохранении: ' . $e->getMessage();
-        }
-    }
-}
-
-// ПОЛУЧАЕМ ЯЗЫКИ ДЛЯ ФОРМЫ (только при GET или при ошибках POST)
-$languages_from_db = getLanguages();
-if (empty($languages_from_db)) {
-    $languages_from_db = $allowed_languages;   // запасной список, если таблица пуста
-}
-
-// ПОДКЛЮЧАЕМ ФОРМУ
-include 'form.php';
-?>
+            <!-- 9. Кнопка отправки -->
+            <div class="form-group">
+                <button type="submit" class="submit-btn"> Сохранить</button>
+            </div>
+        </form>
+    </main>
+<!-- Ссылка на список анкет -->
+<div class="action-buttons" style="margin-top: 1.5rem; text-align: center;">
+    <a href="list.php" class="action-btn"> Посмотреть все сохранённые анкеты</a>
+    <a href="bd.html" class="action-btn secondary"> Структура БД</a>
+</div>
+</body>
+</html>
